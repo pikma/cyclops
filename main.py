@@ -215,7 +215,6 @@ def backwards_induction(state, strategy_book):
   Computes the optimal strategy for player1 in this state.
 
   Returns the value of the state for player 1.
-  action available to player 1.
   '''
   if state.is_terminal_state():
     return state.score()
