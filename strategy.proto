@@ -1,0 +1,23 @@
+syntax = "proto2";
+
+message Strategy {
+  repeated float action_probabilities = 1;
+}
+
+message State {
+  optional int32 num_coins_left_player1 = 1;
+  optional int32 num_coins_left_player2 = 2;
+  optional int32 delta_num_rounds_won = 3;
+  optional int32 num_rounds_left = 4;
+}
+
+
+message StateData {
+  optional State state = 1;
+  optional Strategy strategy = 2;
+  optional float value = 3;
+}
+
+message StrategyBook {
+  repeated StateData states = 1;
+}

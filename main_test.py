@@ -5,7 +5,6 @@ import numpy as np
 import main
 
 
-
 class TestCyclops(unittest.TestCase):
 
   def test_solve_matrix(self):
