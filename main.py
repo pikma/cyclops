@@ -17,7 +17,7 @@ import collections
 import numpy as np
 from ortools.linear_solver import pywraplp
 
-NUM_COINS = 50
+NUM_COINS = 20
 NUM_ROUNDS = 3
 
 PlayerState = collections.namedtuple('PlayerState',
@@ -132,7 +132,7 @@ def solve_matrix_game(matrix):
                            pywraplp.Solver.GLOP_LINEAR_PROGRAMMING)
 
   # Set up the variables.
-  value = solver.NumVar(-solver.infinity(), solver.infinity(), 'value')
+  value = solver.NumVar(-1, 1, 'value')
   action_probs = []
   for i in range(matrix.shape[0]):
     action_probs.append(solver.NumVar(0, 1, 'p_{}'.format(i)))
