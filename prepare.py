@@ -67,35 +67,86 @@ def solve_matrix_game(matrix):
   return ([p.solution_value() for p in action_probs], value.solution_value())
 
 
-def backwards_induction(state, strategy_book):
+def backwards_induction(initial_state, strategy_book, verbose=False):
   '''
-  Computes the optimal strategy for player1 in this state.
+  Computes the optimal strategy for player1.
 
-  Returns the value of the state for player 1.
+  Computes both the optimal strategy and the value of all states starting from
+  the initial_state, and populates the strategies and values of each state in
+  the strategy_book.
   '''
-  if state.is_terminal():
-    return state.score()
 
-  value = strategy_book.get_value(state)
-  if value:
-    return value
+  num_states_to_process = None
+  num_states_processed = 0
+  if verbose:
+    num_states_to_process = num_non_terminal_states(initial_state)
+    print('Game has {} states'.format(num_states_to_process))
 
-  player1_actions = state.get_actions_player1()
-  player2_actions = state.get_actions_player2()
+  def _get_value(state, strategy_book):
+    if state.is_terminal():
+      return state.score()
+    return strategy_book.get_value(state)
 
-  matrix = np.zeros([len(player1_actions), len(player2_actions)])
+  visited_states = [initial_state]
 
-  for i, player1_action in enumerate(player1_actions):
-    for j, player2_action in enumerate(player2_actions):
-      next_state = state.next_state(player1_action, player2_action)
-      matrix[i, j] = backwards_induction(next_state, strategy_book)
+  while visited_states:
+    state = visited_states[-1]
 
-  try:
-    strategy, value = solve_matrix_game(matrix)
-  except Exception as e:
-    raise Exception('Optimization failed for state {}: {}'.format(state, e))
-  strategy_book.set_strategy(state, strategy, value)
-  return value
+    if _get_value(state, strategy_book) is not None:
+      visited_states.pop()
+      continue
+
+    player1_actions = state.get_actions_player1()
+    player2_actions = state.get_actions_player2()
+
+    matrix = np.zeros([len(player1_actions), len(player2_actions)])
+
+    all_next_states_processed = True
+
+    for i, player1_action in enumerate(player1_actions):
+      for j, player2_action in enumerate(player2_actions):
+        next_state = state.next_state(player1_action, player2_action)
+        value = _get_value(next_state, strategy_book)
+        if value is not None:
+          matrix[i, j] = value
+        else:
+          visited_states.append(next_state)
+          all_next_states_processed = False
+
+    if all_next_states_processed:
+      visited_states.pop()
+      num_states_processed += 1
+      try:
+        strategy, value = solve_matrix_game(matrix)
+      except Exception as e:
+        raise Exception('Optimization failed for state {}: {}'.format(state, e))
+      strategy_book.set_strategy(state, strategy, value)
+
+    if verbose:
+      print('Processed {} / {} states'.format(num_states_processed,
+                                              num_states_to_process))
+
+
+def num_non_terminal_states(initial_state):
+  '''
+  Computes the total number of states following an initial_state.
+  '''
+  visited = [initial_state]
+  processed = set()
+
+  while visited:
+    current_state = visited.pop()
+    if current_state.is_terminal() or current_state in processed:
+      continue
+
+    processed.add(current_state)
+
+    for player1_action in current_state.get_actions_player1():
+      for player2_action in current_state.get_actions_player2():
+        next_state = current_state.next_state(player1_action, player2_action)
+        visited.append(next_state)
+
+  return len(processed)
 
 
 def main():
@@ -109,8 +160,13 @@ def main():
 
   strategy_book = StrategyBook()
   initial_state = cyclops.State.initial_state()
-  backwards_induction(initial_state, strategy_book)
+
+  backwards_induction(initial_state, strategy_book, verbose=True)
   serialized_strategy = strategy_book.serialize()
+
+  print(
+      'Initial strategy: {}'.format(StrategyBook.strategy_to_str(
+        initial_state, strategy_book.get_strategy(initial_state))))
 
   game_value = strategy_book.get_value(initial_state)
   if np.abs(game_value) > 0.0001:

@@ -15,7 +15,7 @@ import collections
 
 import numpy as np
 
-NUM_COINS = 20
+NUM_COINS = 100
 NUM_ROUNDS = 7
 
 
@@ -66,7 +66,8 @@ class State(
 
   def is_terminal(self):
     '''Returns true if the game is over.'''
-    return self.num_rounds_left == 0
+    return (np.abs(self.delta_num_rounds_won) > self.num_rounds_left or
+            self.num_rounds_left == 0)
 
   def _get_player_actions(self, num_coins_left):
     if self.num_rounds_left == 1:

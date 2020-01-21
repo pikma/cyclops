@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 
 import cyclops
 import strategy_pb2
@@ -24,6 +24,17 @@ class StrategyBook(object):
 
   def set_strategy(self, state, strategy, value):
     self._strategies[state] = (strategy, value)
+
+  @staticmethod
+  def strategy_to_str(state, strategy):
+    result = '['
+    actions = state.get_actions_player1()
+    for action_ix, prob in enumerate(strategy):
+      if action_ix != 0:
+        result += ', '
+      result += '{}: {:.2g}'.format(actions[action_ix], prob)
+    result += ']'
+    return result
 
   def __str__(self):
     strategies_str = []

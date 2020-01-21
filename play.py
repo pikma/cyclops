@@ -58,9 +58,8 @@ def main():
 
   while not state.is_terminal():
     print('')
-    print(
-        pretty_print_state(state, num_rounds_won_player1,
-                           num_rounds_won_player2))
+    print(pretty_print_state(state, num_rounds_won_player1,
+                             num_rounds_won_player2))
     actions_player2 = state.get_actions_player2()
 
     strategy = strategy_book.get_strategy(state)
@@ -68,7 +67,7 @@ def main():
       raise Exception('No recorded strategy for state {}'.format(state))
 
     strategy = np.array(strategy)
-    assert(abs(1-np.sum(strategy)) < 0.00001)
+    assert (abs(1 - np.sum(strategy)) < 0.00001)
     strategy /= np.sum(strategy)
 
     num_coins_spent_player1 = np.random.choice(
